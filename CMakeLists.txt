@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(TP3 C)
+project(L3_S6_Sys2_TP3 C)
 
 set(CMAKE_C_STANDARD 11)
 
