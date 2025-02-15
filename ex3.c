@@ -6,7 +6,20 @@
 #include <time.h>
 #include <unistd.h>
 
+/**
+ * Convert a string to a long but with the securities of strtol(3) instead of atoi(3).
+ *
+ * @param arg a string.
+ * @return the conversion of this string in long.
+ */
 long convertWithCheck(const char *arg);
+
+/**
+ *
+ * @param arg Should be a pointer to a struct tfunc_param
+ * @return NULL
+ */
+void *tfunc(void *arg);
 
 struct tfunc_param {
     long min;
@@ -15,21 +28,6 @@ struct tfunc_param {
     size_t arr_size;
 };
 
-void *tfunc(void *arg) {
-    const struct tfunc_param param = *(struct tfunc_param *)arg;
-
-    long *arr = param.arr;
-    const size_t arr_size = param.arr_size;
-
-    const long min = param.min;
-    const long max = param.max;
-    srand((unsigned int) time(NULL) ^ getpid());
-
-    for (size_t i = 0; i < arr_size; ++i) {
-        arr[i] = min + random() % (max - min +1);
-    }
-    return NULL;
-}
 
 int main(const int argc, char **argv) {
     if (argc != 4) {
@@ -96,4 +94,20 @@ long convertWithCheck(const char *arg) {
         exit(EXIT_FAILURE);
     }
     return result;
+}
+
+void *tfunc(void *arg) {
+    const struct tfunc_param param = *(struct tfunc_param *)arg;
+
+    long *arr = param.arr;
+    const size_t arr_size = param.arr_size;
+
+    const long min = param.min;
+    const long max = param.max;
+    srand((unsigned int) time(NULL) ^ getpid());
+
+    for (size_t i = 0; i < arr_size; ++i) {
+        arr[i] = min + random() % (max - min +1);
+    }
+    return NULL;
 }
