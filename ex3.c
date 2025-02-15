@@ -1,29 +1,32 @@
 #include <errno.h>
+#include <limits.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <unistd.h>
 
+long convertWithCheck(const char *arg);
+
 struct tfunc_param {
-    int min;
-    int max;
-    int *arr;
+    long min;
+    long max;
+    long *arr;
     size_t arr_size;
 };
 
 void *tfunc(void *arg) {
     const struct tfunc_param param = *(struct tfunc_param *)arg;
 
-    int *arr = param.arr;
+    long *arr = param.arr;
     const size_t arr_size = param.arr_size;
 
-    const int min = param.min;
-    const int max = param.max;
+    const long min = param.min;
+    const long max = param.max;
     srand((unsigned int) time(NULL) ^ getpid());
 
     for (size_t i = 0; i < arr_size; ++i) {
-        arr[i] = min + (int) (random() % (max - min +1));
+        arr[i] = min + random() % (max - min +1);
     }
     return NULL;
 }
@@ -33,20 +36,20 @@ int main(const int argc, char **argv) {
         fprintf(stderr, "Usage: %s <min> <max> <size>", argv[0]);
         return EXIT_FAILURE;
     }
-    int min = atoi(argv[1]);
-    int max = atoi(argv[2]);
-    const int size = atoi(argv[3]);
+    long min = convertWithCheck(argv[1]);
+    long max = convertWithCheck(argv[2]);
+    const long size = convertWithCheck(argv[3]);
     if (min == 0 || max == 0) {
         fprintf(stderr, "min/max must be an int greater than zero.");
         return EXIT_FAILURE;
     }
     if (max < min) {
-        const int tmp = min;
+        const long tmp = min;
         max = min;
         min = tmp;
     }
 
-    int arr[size];
+    long arr[size];
 
     struct tfunc_param param;
     param.min = min;
@@ -69,8 +72,28 @@ int main(const int argc, char **argv) {
     }
 
     for (int i = 0; i < size; ++i) {
-        printf("arr[%d] = %d\n", i, arr[i]);
+        printf("arr[%d] = %lu\n", i, arr[i]);
     }
 
     return EXIT_SUCCESS;
+}
+
+long convertWithCheck(const char *arg) {
+    char *endPointer;
+    const long result = strtol(arg, &endPointer, 10);
+    if ((errno == ERANGE && (result == LONG_MAX || result == LONG_MIN)) || (errno != 0 && result == 0)) {
+        perror("strtol");
+        exit(EXIT_FAILURE);
+    }
+
+    if (endPointer == arg) {
+        fprintf(stderr, "No Digits were found\n");
+        exit(EXIT_FAILURE);
+    }
+
+    if (*endPointer != '\0') {
+        fprintf(stderr, "Further characters after number: %s\n", endPointer);
+        exit(EXIT_FAILURE);
+    }
+    return result;
 }
